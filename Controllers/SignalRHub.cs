@@ -30,6 +30,7 @@ namespace dotnet_react.Controllers
             var token = handler.ReadJwtToken(accessToken);
             ApplicationUser appUser = await _manager.FindByIdAsync(token.Subject);
             _mathRace.ResetGame();
+            _mathRace.Status = $"{appUser.Email} reset the game";
             _mathRace.AddPlayer(appUser);
             await Clients.All.SendAsync("GameJson", _mathRace.GetGameJson());
         }
@@ -41,7 +42,7 @@ namespace dotnet_react.Controllers
             ApplicationUser appUser = await _manager.FindByIdAsync(token.Subject);
             if (_mathRace.CheckAnswer(appUser, int.Parse(answer)))
             {
-                _mathRace.Status = $"{appUser.Email} got the last question right! ({_mathRace.Num1} + {_mathRace.Num2})";
+                await Clients.Caller.SendAsync("AnswerRight", answer);
                 await Clients.All.SendAsync("GameJson", _mathRace.GetGameJson());
             }
             else

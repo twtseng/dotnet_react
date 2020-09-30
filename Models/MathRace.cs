@@ -42,6 +42,7 @@ namespace dotnet_react.Models
         {
             if (answer == Num1 + Num2)
             {
+                this.Status = $"{user.Email} got the last question right! ({this.Num1} + {this.Num2} = {answer})";
                 PlayerWins[user.Email].Add($"{Num1} + {Num2} = {answer}");
                 GenerateNewProblem();
                 return true;
