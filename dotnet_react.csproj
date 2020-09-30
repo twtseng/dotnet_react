@@ -10,6 +10,7 @@
     <UserSecretsId>0aa5c2ba-7265-46d0-ac67-3dcb3685a52e</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="json.net" Version="1.0.23" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="3.1.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="3.1.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="3.1.8" />

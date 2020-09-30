@@ -52,11 +52,11 @@ namespace dotnet_react
                     options.ClientId = googleAuthNSection["ClientId"];
                     options.ClientSecret = googleAuthNSection["ClientSecret"];
                 });
-            services.AddAuthentication().AddMicrosoftAccount(microsoftOptions =>
-            {
-                microsoftOptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
-                microsoftOptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
-            });    
+            // services.AddAuthentication().AddMicrosoftAccount(microsoftOptions =>
+            // {
+            //     microsoftOptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
+            //     microsoftOptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
+            // });    
 
             services.AddAuthentication()
                 .AddIdentityServerJwt();
@@ -73,6 +73,7 @@ namespace dotnet_react
             services.AddHttpContextAccessor();
 
             services.AddSignalR().AddJsonProtocol(options => { options.PayloadSerializerOptions.PropertyNamingPolicy = null; });
+            services.AddSingleton(new MathRace());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -105,16 +106,16 @@ namespace dotnet_react
                     name: "default",
                     pattern: "{controller}/{action=Index}/{id?}");
                 endpoints.MapRazorPages();
-                endpoints.MapHub<ChatHub>("/chathub");
+                endpoints.MapHub<SignalRHub>("/hub");
             });
             app.UseSpa(spa =>
             {
                 spa.Options.SourcePath = "ClientApp";
 
-                if (env.IsDevelopment())
-                {
-                    spa.UseReactDevelopmentServer(npmScript: "start");
-                }
+                // if (env.IsDevelopment())
+                // {
+                //     spa.UseReactDevelopmentServer(npmScript: "start");
+                // }
             });
         }
     }
