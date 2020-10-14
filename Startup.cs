@@ -32,7 +32,7 @@ namespace dotnet_react
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
  
             services.AddIdentityServer()
@@ -52,11 +52,11 @@ namespace dotnet_react
                     options.ClientId = googleAuthNSection["ClientId"];
                     options.ClientSecret = googleAuthNSection["ClientSecret"];
                 });
-            // services.AddAuthentication().AddMicrosoftAccount(microsoftOptions =>
-            // {
-            //     microsoftOptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
-            //     microsoftOptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
-            // });    
+            services.AddAuthentication().AddMicrosoftAccount(microsoftOptions =>
+            {
+                microsoftOptions.ClientId = Configuration["Authentication:Microsoft:ClientId"];
+                microsoftOptions.ClientSecret = Configuration["Authentication:Microsoft:ClientSecret"];
+            });    
 
             services.AddAuthentication()
                 .AddIdentityServerJwt();
@@ -112,10 +112,11 @@ namespace dotnet_react
             {
                 spa.Options.SourcePath = "ClientApp";
 
-                // if (env.IsDevelopment())
-                // {
-                //     spa.UseReactDevelopmentServer(npmScript: "start");
-                // }
+                if (env.IsDevelopment())
+                {
+                    System.Console.WriteLine("Using UseReactDevelopmentServer");
+                    spa.UseReactDevelopmentServer(npmScript: "start");
+                }
             });
         }
     }

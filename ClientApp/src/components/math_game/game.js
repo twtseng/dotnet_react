@@ -2,6 +2,7 @@ import React from 'react'
 import { Jumbotron, Button, Card, ListGroup, ListGroupItem } from 'react-bootstrap'
 import * as signalR from '@microsoft/signalr'
 import authService from '../api-authorization/AuthorizeService'
+import AppContext from '../AppContext';
 
 const Game = () => {
     // Builds the SignalR connection, mapping it to /chat
@@ -10,33 +11,32 @@ const Game = () => {
     const [myAnswer, setMyAnswer] = React.useState("");
     const [answerStatus, setAnswerStatus] = React.useState("");
     const [answerStatusColor, setAnswerStatusColor] = React.useState("text-success");
+    const { signalRHub } = React.useContext(AppContext);
+
+    const sendSignalR = async (method, p1=null, p2=null, p3=null, p4=null) => {
+        signalRHub.send(method,p1,p2,p3,p4)
+        .then(() => console.log(`${method} succeeded`))
+        .catch(err => { console.log(`${method} failed, ${err}. Attempting reconnect`);  signalRHub.restartHub();})    
+    } 
 
     React.useEffect(() => {
-        authService.getAccessToken()
-        .then((token) => {
-            setAccessToken(token);
-            const hub = new signalR.HubConnectionBuilder()
-            .withUrl("/hub")
-            .configureLogging(signalR.LogLevel.Information)  
-            .build();
-
-            hub.on("GameJson", (gameJson) => {
-                setGameState(JSON.parse(gameJson));
-            });
-            hub.on("AnswerWrong", (answer) => {
-                setAnswerStatus(`${answer} is not correct`);
-                setAnswerStatusColor("text-danger");
-            });
-            hub.on("AnswerRight", (answer) => {
-                setAnswerStatus(`${answer} is correct`);
-                setAnswerStatusColor("text-success");
-            });
-
-            // Starts the SignalR connection
-            hub.start().then(() => hub.invoke("AddPlayer", token));
-            setHubConnection(hub);
+    authService.getAccessToken()
+    .then((token) => {
+        signalRHub.addMethod("GameJson", (gameJson) => {
+            setGameState(JSON.parse(gameJson));
         });
-    },[]);
+        signalRHub.addMethod("AnswerWrong", (answer) => {
+            setAnswerStatus(`${answer} is not correct`);
+            setAnswerStatusColor("text-danger");
+        });
+        signalRHub.addMethod("AnswerRight", (answer) => {
+            setAnswerStatus(`${answer} is correct`);
+            setAnswerStatusColor("text-success");
+        });
+        signalRHub.startHub(token)
+        .then(() => sendSignalR("AddPlayer"));
+    });
+    },[]);  
 
     const [gameState, setGameState] = React.useState(
         {
@@ -51,16 +51,16 @@ const Game = () => {
     const clickJoin = () => {
         setAnswerStatus("");
         setMyAnswer("");
-        hubConnection.invoke("AddPlayer", accessToken);
+        sendSignalR("AddPlayer");
     } 
     const clickReset = () => {
         setAnswerStatus("");
         setMyAnswer("");
-        hubConnection.invoke("ResetGame", accessToken);
+        sendSignalR("ResetGame");
     }     
     const clickSubmit = () => {
         setMyAnswer("");
-        hubConnection.invoke("CheckAnswer", accessToken, myAnswer);
+        sendSignalR("CheckAnswer", myAnswer);
     }
     return (
         <Jumbotron>
