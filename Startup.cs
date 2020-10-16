@@ -73,7 +73,7 @@ namespace dotnet_react
             services.AddHttpContextAccessor();
 
             services.AddSignalR().AddJsonProtocol(options => { options.PayloadSerializerOptions.PropertyNamingPolicy = null; });
-            services.AddSingleton(new MathRace());
+            services.AddSingleton(new AppData());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

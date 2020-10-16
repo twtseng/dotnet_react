@@ -1,15 +1,21 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.SignalR;
+using dotnet_react.Controllers;
+using Microsoft.Extensions.Logging;
+using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Identity;
 
 namespace dotnet_react.Models
 {
-    public class MathRace
+    public class MathRace : HubGroup
     {
         /*
         Game where people race to finish 10 problems before the other players
         */
-        public MathRace()
+        public MathRace() : base()
         {
             PlayerWins = new Dictionary<string, List<string>>();
             GenerateNewProblem();
@@ -57,6 +63,53 @@ namespace dotnet_react.Models
         public string GetGameJson()
         {
             return JsonConvert.SerializeObject(this);
+        }
+
+
+        class MathGamePayload 
+        {
+            public string Method { get; set; }
+            public string Param1 { get; set; }
+        }
+        public override async Task HandlePayload(SignalRHub _signalRHub, string accessToken, string payloadString)
+        {
+            MathGamePayload payload = JsonConvert.DeserializeObject<MathGamePayload>(payloadString);
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(accessToken);
+            ApplicationUser appUser = await _signalRHub._manager.FindByIdAsync(token.Subject);
+            switch (payload.Method)
+            {
+                case "ResetGame":
+                    _signalRHub._logger.LogInformation($"MathRace ResetGame ({accessToken})");
+                    this.ResetGame();
+                    this.Status = $"{appUser.Email} reset the game";
+                    this.AddPlayer(appUser);
+                    await _signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
+                    break;
+                case "CheckAnswer":
+                    _signalRHub._logger.LogInformation($"MathRace CheckAnswer ({payload.Param1} {accessToken})");
+                    if (this.CheckAnswer(appUser, int.Parse(payload.Param1)))
+                    {
+                        await _signalRHub.Clients.Caller.SendAsync("AnswerRight", payload.Param1);
+                        await _signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
+                    }
+                    else
+                    {
+                        await _signalRHub.Clients.Caller.SendAsync("AnswerWrong", payload.Param1);
+                    }
+                    break;  
+                case "AddPlayer":
+                    _signalRHub._logger.LogInformation($"MathRace AddPlayer ({accessToken})");
+                    this.AddPlayer(appUser);
+                    await this.JoinGroup(_signalRHub);
+                    _signalRHub._logger.LogInformation($"AddPlayer ({appUser.Email})");
+
+                    await _signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
+                    break;       
+                default:
+                    _signalRHub._logger.LogInformation($"MathRace UNKNOWN METEHOD({payload.Method})");
+                    break;
+            }
         }
     }
 }

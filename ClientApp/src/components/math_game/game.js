@@ -12,9 +12,11 @@ const Game = () => {
     const [answerStatus, setAnswerStatus] = React.useState("");
     const [answerStatusColor, setAnswerStatusColor] = React.useState("text-success");
     const { signalRHub } = React.useContext(AppContext);
+    const [hubGroupId, setHubGroupId] = React.useState("");
 
-    const sendSignalR = async (method, p1=null, p2=null, p3=null, p4=null) => {
-        signalRHub.send(method,p1,p2,p3,p4)
+    const sendSignalR = async (method, p1=null) => {
+        console.log(`sendSignalR hubGroupId:${hubGroupId} method:${method} p1:${p1}`)
+        signalRHub.sendGroupMethod(hubGroupId, JSON.stringify({ Method: method, Param1: p1 }))
         .then(() => console.log(`${method} succeeded`))
         .catch(err => { console.log(`${method} failed, ${err}. Attempting reconnect`);  signalRHub.restartHub();})    
     } 
@@ -22,6 +24,10 @@ const Game = () => {
     React.useEffect(() => {
     authService.getAccessToken()
     .then((token) => {
+        signalRHub.addMethod("GroupId", (hubGroupId) => {
+            console.log(`GroupId: ${hubGroupId}`);
+            setHubGroupId(hubGroupId);
+        });
         signalRHub.addMethod("GameJson", (gameJson) => {
             setGameState(JSON.parse(gameJson));
         });
@@ -34,7 +40,7 @@ const Game = () => {
             setAnswerStatusColor("text-success");
         });
         signalRHub.startHub(token)
-        .then(() => sendSignalR("AddPlayer"));
+        .then(() => signalRHub.hub.send("GetGroupId"));
     });
     },[]);  
 
