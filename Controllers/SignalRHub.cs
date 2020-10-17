@@ -5,72 +5,39 @@ using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Identity;
 using dotnet_react.Models;
+using dotnet_react.Models.HubGroups;
+using Newtonsoft.Json;
 
 namespace dotnet_react.Controllers
 {
     public class SignalRHub : Hub
     {
-        public ILogger<SignalRHub> _logger;
-        public UserManager<dotnet_react.Models.ApplicationUser> _manager;
+       
       
-        AppData _appData;
+        HubGroupManager _hubGroupManager;
+        public UserManager<dotnet_react.Models.ApplicationUser> UserManager { get; private set; }
+        public ILogger<SignalRHub> Logger { get; private set; }
+
         public SignalRHub(
             ILogger<SignalRHub> logger,
             UserManager<dotnet_react.Models.ApplicationUser> userManager,
-            AppData appData
+            HubGroupManager appData
         )
         {
-            _logger = logger;
-            _manager = userManager;
-            _appData = appData;
+            Logger = logger;
+            UserManager = userManager;
+            _hubGroupManager = appData;
         }
-        public async Task GetGroupId()
+
+        public async Task CallAction(string accessToken, string hubGroupId, string payloadString)
         {
-            _logger.LogInformation($"SignalRHub.GetGroupId");
-            await Clients.All.SendAsync("GroupId", _appData.HubGroups[0].HubGroupId);
-        }
-        public async Task GroupMethod(string accessToken, string hubGroupId, string payload)
-        {
-            _logger.LogInformation($"SignalRHub.GroupMethod hubGroupId={hubGroupId} payload={payload}");
+            Logger.LogInformation($"SignalRHub.CallAction groupId=[{hubGroupId}] payload=[{payloadString}]");
+            var handler = new JwtSecurityTokenHandler();
+            var token = handler.ReadJwtToken(accessToken);
+            ApplicationUser appUser = await UserManager.FindByIdAsync(token.Subject);
+            HubPayload hubPayload = JsonConvert.DeserializeObject<HubPayload>(payloadString);
             
-            await _appData.HandlePayload(this, hubGroupId, accessToken, payload);
+            await _hubGroupManager.CallAction(this, appUser, hubGroupId, hubPayload);
         }
-        // public async Task ResetGame(string accessToken)
-        // {
-        //     _logger.LogInformation($"ResetGame ({accessToken}");
-        //     var handler = new JwtSecurityTokenHandler();
-        //     var token = handler.ReadJwtToken(accessToken);
-        //     ApplicationUser appUser = await _manager.FindByIdAsync(token.Subject);
-        //     _mathRace.ResetGame();
-        //     _mathRace.Status = $"{appUser.Email} reset the game";
-        //     _mathRace.AddPlayer(appUser);
-        //     await Clients.All.SendAsync("GameJson", _mathRace.GetGameJson());
-        // }
-        // public async Task CheckAnswer(string accessToken, string answer)
-        // {
-        //     _logger.LogInformation($"CheckAnswer ({answer} {accessToken})");
-        //     var handler = new JwtSecurityTokenHandler();
-        //     var token = handler.ReadJwtToken(accessToken);
-        //     ApplicationUser appUser = await _manager.FindByIdAsync(token.Subject);
-        //     if (_mathRace.CheckAnswer(appUser, int.Parse(answer)))
-        //     {
-        //         await Clients.Caller.SendAsync("AnswerRight", answer);
-        //         await Clients.All.SendAsync("GameJson", _mathRace.GetGameJson());
-        //     }
-        //     else
-        //     {
-        //         await Clients.Caller.SendAsync("AnswerWrong", answer);
-        //     }
-        // }
-        
-        // public async Task AddPlayer(string accessToken)
-        // {
-        //     var handler = new JwtSecurityTokenHandler();
-        //     var token = handler.ReadJwtToken(accessToken);
-        //     ApplicationUser appUser = await _manager.FindByIdAsync(token.Subject);
-        //     _mathRace.AddPlayer(appUser);
-        //     _logger.LogInformation($"AddPlayer ({appUser.Email})");
-        //     await Clients.All.SendAsync("GameJson", _mathRace.GetGameJson());
-        // }
     }
 }

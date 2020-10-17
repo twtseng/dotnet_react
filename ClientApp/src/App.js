@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import { Route } from 'react-router';
 import { Layout } from './components/Layout';
-import { Home } from './components/Home';
-import { FetchData } from './components/FetchData';
-import { Counter } from './components/Counter';
+import Home from './components/Home';
 import AuthorizeRoute from './components/api-authorization/AuthorizeRoute';
 import ApiAuthorizationRoutes from './components/api-authorization/ApiAuthorizationRoutes';
 import { ApplicationPaths } from './components/api-authorization/ApiAuthorizationConstants';
@@ -24,14 +22,12 @@ export default class App extends Component {
     return (
       <AppContext.Provider value={{signalRHub}}>
         <Layout>
-          <Route exact path='/' component={Home} />
-          <Route path='/counter' component={Counter} />
-          <AuthorizeRoute path='/mathgame' component={MathGame} />
+          <AuthorizeRoute exact path='/' component={Home} />
+          <AuthorizeRoute path='/mathgame/:hubGroupId' component={MathGame} />
           <Route path='/destroydeathstar' component={DeathStar} />
           <Route path='/eatleaves' component={EatLeaves} />
           <Route path='/politegame' component={PoliteGame} />
           <Route path='/wardenchess' component={WardenChess} />
-          <AuthorizeRoute path='/fetch-data' component={FetchData} />
           <Route path={ApplicationPaths.ApiAuthorizationPrefix} component={ApiAuthorizationRoutes} />
         </Layout>
       </AppContext.Provider>

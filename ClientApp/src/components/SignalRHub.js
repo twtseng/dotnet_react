@@ -28,9 +28,9 @@ export class SignalRHub {
       this.authToken = authToken;
       return this.restartHub();
     }
-    sendGroupMethod(groupId, payload) {
-      console.log(`SignalRHub sendGroupMethod groupId=${groupId} payload=${payload}`);
-      return this.hub.invoke('GroupMethod', this.authToken, groupId, payload);
+    callAction(groupId, payload) {
+      console.log(`SignalRHub callAction groupId=${groupId} payload=${payload}`);
+      return this.hub.invoke('CallAction', this.authToken, groupId, payload);
     }
     // send(methodName, p1=null, p2=null, p3=null, p4=null) {
     //   if (p1 == null) {

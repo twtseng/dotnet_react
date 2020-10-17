@@ -1,33 +1,26 @@
 import React from 'react'
 import { Jumbotron, Button, Card, ListGroup, ListGroupItem } from 'react-bootstrap'
-import * as signalR from '@microsoft/signalr'
 import authService from '../api-authorization/AuthorizeService'
 import AppContext from '../AppContext';
+import { useParams } from "react-router-dom";
 
 const Game = () => {
-    // Builds the SignalR connection, mapping it to /chat
-    const [hubConnection, setHubConnection] = React.useState("");
-    const [accessToken, setAccessToken] = React.useState("");
+    let { hubGroupId } = useParams();
     const [myAnswer, setMyAnswer] = React.useState("");
     const [answerStatus, setAnswerStatus] = React.useState("");
     const [answerStatusColor, setAnswerStatusColor] = React.useState("text-success");
     const { signalRHub } = React.useContext(AppContext);
-    const [hubGroupId, setHubGroupId] = React.useState("");
 
     const sendSignalR = async (method, p1=null) => {
         console.log(`sendSignalR hubGroupId:${hubGroupId} method:${method} p1:${p1}`)
-        signalRHub.sendGroupMethod(hubGroupId, JSON.stringify({ Method: method, Param1: p1 }))
+        signalRHub.callAction(hubGroupId, JSON.stringify({ Method: method, Param1: p1 }))
         .then(() => console.log(`${method} succeeded`))
-        .catch(err => { console.log(`${method} failed, ${err}. Attempting reconnect`);  signalRHub.restartHub();})    
+       // .catch(err => { console.log(`${method} failed, ${err}. Attempting reconnect`);  signalRHub.restartHub();})    
     } 
 
     React.useEffect(() => {
     authService.getAccessToken()
     .then((token) => {
-        signalRHub.addMethod("GroupId", (hubGroupId) => {
-            console.log(`GroupId: ${hubGroupId}`);
-            setHubGroupId(hubGroupId);
-        });
         signalRHub.addMethod("GameJson", (gameJson) => {
             setGameState(JSON.parse(gameJson));
         });
@@ -39,8 +32,7 @@ const Game = () => {
             setAnswerStatus(`${answer} is correct`);
             setAnswerStatusColor("text-success");
         });
-        signalRHub.startHub(token)
-        .then(() => signalRHub.hub.send("GetGroupId"));
+        signalRHub.startHub(token);
     });
     },[]);  
 
@@ -57,7 +49,13 @@ const Game = () => {
     const clickJoin = () => {
         setAnswerStatus("");
         setMyAnswer("");
+        signalRHub.callAction("", JSON.stringify({ Method: "JoinGroup", Param1: hubGroupId }))
         sendSignalR("AddPlayer");
+    }
+    const clickUnjoin = () => {
+        setAnswerStatus("");
+        setMyAnswer("");
+        sendSignalR("RemovePlayer");
     } 
     const clickReset = () => {
         setAnswerStatus("");
@@ -68,10 +66,17 @@ const Game = () => {
         setMyAnswer("");
         sendSignalR("CheckAnswer", myAnswer);
     }
+
     return (
         <Jumbotron>
                 <div className='mb-4'>
+                    HubGroupId: {hubGroupId}
+                </div>                
+                <div className='mb-4'>
                     <Button onClick={clickJoin}>Join Game</Button>
+                </div>
+                <div className='mb-4'>
+                    <Button onClick={clickUnjoin}>Unjoin Game</Button>
                 </div>
                 <div className='mb-4'>
                     <Button onClick={clickReset}>Reset Game</Button>
@@ -95,26 +100,26 @@ const Game = () => {
                     <small className={answerStatusColor}>{answerStatus}</small>
                     </Card.Footer>
                 </Card>
-                <Card >
-                    <Card.Body>
-                        <Card.Title>Players</Card.Title>
-                    </Card.Body>
-                    <ListGroup className="list-group-flush">
-                    {
-                        Object.keys(gameState.PlayerWins).map((player, index) => (  
-                            <ListGroupItem key={index}>
-                                <h5>{player}</h5>
-                                <ul>
-                                {
-                                    gameState.PlayerWins[player].map((x, index) => <li key={index}>{x}</li>)
-                                }
-                                </ul>
-                            </ListGroupItem>
-                        
-                        ))
-                    }
-                    </ListGroup>
-                </Card>
+                <Jumbotron >
+                        <h3>Players</h3>
+                        <div className="d-flex">
+                        {
+                            Object.keys(gameState.PlayerWins).map((player, index) => (
+                                <Card key={index} className="bg-light mr-3">
+                                    <Card.Body>
+                                    <Card.Title>{player}</Card.Title>
+                                    <ol>
+                                    {
+                                        gameState.PlayerWins[player].map((x, index) => <li key={index}>{x}</li>)
+                                    }
+                                    </ol>
+                                    </Card.Body>
+                                </Card>
+                            
+                            ))
+                        }
+                        </div>
+                </Jumbotron>
         </Jumbotron>
     )
 }

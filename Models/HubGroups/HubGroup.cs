@@ -6,7 +6,7 @@ using dotnet_react.Controllers;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace dotnet_react.Models
+namespace dotnet_react.Models.HubGroups
 {
     /// <summary>
     /// Base class representing all SignalR clients that are sharing the same Chat, Game, or App
@@ -20,11 +20,6 @@ namespace dotnet_react.Models
         }
         public string HubGroupId { get; protected set; }
 
-        public abstract Task HandlePayload(SignalRHub signalRHub, string accessToken, string payload);
-        public async Task JoinGroup(SignalRHub signalRHub)
-        {
-             signalRHub._logger.LogInformation($"HubGroup.JoinGroup ({this.HubGroupId})");
-            await signalRHub.Groups.AddToGroupAsync(signalRHub.Context.ConnectionId, this.HubGroupId);
-        }
+        public abstract Task CallAction(SignalRHub signalRHub, ApplicationUser appUser, string hubGroupId, HubPayload hubPayload);
     }
 }

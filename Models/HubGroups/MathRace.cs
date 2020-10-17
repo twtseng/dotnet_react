@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Identity;
 
-namespace dotnet_react.Models
+namespace dotnet_react.Models.HubGroups
 {
     public class MathRace : HubGroup
     {
@@ -29,9 +29,16 @@ namespace dotnet_react.Models
         public Dictionary<string, List<string>> PlayerWins { get; set; }
         public void AddPlayer(ApplicationUser user)
         {
-            if (!PlayerWins.ContainsKey(user.Email))
+            if (!PlayerWins.ContainsKey(user.UserName))
             {
-                PlayerWins[user.Email] = new List<string>();
+                PlayerWins[user.UserName] = new List<string>();
+            }
+        }
+        public void RemovePlayer(ApplicationUser user)
+        {
+            if (PlayerWins.ContainsKey(user.UserName))
+            {
+                PlayerWins.Remove(user.UserName);
             }
         }
         public int Num1 { get; private set; }
@@ -49,7 +56,7 @@ namespace dotnet_react.Models
             if (answer == Num1 + Num2)
             {
                 this.Status = $"{user.Email} got the last question right! ({this.Num1} + {this.Num2} = {answer})";
-                PlayerWins[user.Email].Add($"{Num1} + {Num2} = {answer}");
+                PlayerWins[user.UserName].Add($"{Num1} + {Num2} = {answer}");
                 GenerateNewProblem();
                 return true;
             } else {
@@ -65,49 +72,46 @@ namespace dotnet_react.Models
             return JsonConvert.SerializeObject(this);
         }
 
-
-        class MathGamePayload 
+        public override async Task CallAction(SignalRHub signalRHub, ApplicationUser appUser, string hubGroupId, HubPayload hubPayload)
         {
-            public string Method { get; set; }
-            public string Param1 { get; set; }
-        }
-        public override async Task HandlePayload(SignalRHub _signalRHub, string accessToken, string payloadString)
-        {
-            MathGamePayload payload = JsonConvert.DeserializeObject<MathGamePayload>(payloadString);
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(accessToken);
-            ApplicationUser appUser = await _signalRHub._manager.FindByIdAsync(token.Subject);
-            switch (payload.Method)
+            switch (hubPayload.Method)
             {
                 case "ResetGame":
-                    _signalRHub._logger.LogInformation($"MathRace ResetGame ({accessToken})");
+                    signalRHub.Logger.LogInformation($"MathRace ResetGame {appUser.UserName}");
                     this.ResetGame();
-                    this.Status = $"{appUser.Email} reset the game";
+                    this.Status = $"{appUser.UserName} reset the game";
                     this.AddPlayer(appUser);
-                    await _signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
+                    await signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
                     break;
                 case "CheckAnswer":
-                    _signalRHub._logger.LogInformation($"MathRace CheckAnswer ({payload.Param1} {accessToken})");
-                    if (this.CheckAnswer(appUser, int.Parse(payload.Param1)))
+                    signalRHub.Logger.LogInformation($"MathRace CheckAnswer ({hubPayload.Param1} {appUser.UserName})");
+                    if (this.CheckAnswer(appUser, int.Parse(hubPayload.Param1)))
                     {
-                        await _signalRHub.Clients.Caller.SendAsync("AnswerRight", payload.Param1);
-                        await _signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
+                        await signalRHub.Clients.Caller.SendAsync("AnswerRight", hubPayload.Param1);
+                        await signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
                     }
                     else
                     {
-                        await _signalRHub.Clients.Caller.SendAsync("AnswerWrong", payload.Param1);
+                        await signalRHub.Clients.Caller.SendAsync("AnswerWrong", hubPayload.Param1);
                     }
                     break;  
                 case "AddPlayer":
-                    _signalRHub._logger.LogInformation($"MathRace AddPlayer ({accessToken})");
+                    signalRHub.Logger.LogInformation($"MathRace AddPlayer");
                     this.AddPlayer(appUser);
-                    await this.JoinGroup(_signalRHub);
-                    _signalRHub._logger.LogInformation($"AddPlayer ({appUser.Email})");
+                    //await this.JoinGroup(_signalRHub);
+                    signalRHub.Logger.LogInformation($"AddPlayer ({appUser.UserName})");
 
-                    await _signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
-                    break;       
+                    await signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
+                    break;
+                case "RemovePlayer":
+                    signalRHub.Logger.LogInformation($"MathRace RemovePlayer");
+                    this.RemovePlayer(appUser);
+                    signalRHub.Logger.LogInformation($"RemovePlayer ({appUser.UserName})");
+
+                    await signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
+                    break;           
                 default:
-                    _signalRHub._logger.LogInformation($"MathRace UNKNOWN METEHOD({payload.Method})");
+                    signalRHub.Logger.LogInformation($"MathRace UNKNOWN METHOD({hubPayload.Method})");
                     break;
             }
         }

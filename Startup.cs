@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.EntityFrameworkCore;
 using dotnet_react.Data;
 using dotnet_react.Models;
+using dotnet_react.Models.HubGroups;
 using dotnet_react.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,7 +74,7 @@ namespace dotnet_react
             services.AddHttpContextAccessor();
 
             services.AddSignalR().AddJsonProtocol(options => { options.PayloadSerializerOptions.PropertyNamingPolicy = null; });
-            services.AddSingleton(new AppData());
+            services.AddSingleton(new HubGroupManager());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
