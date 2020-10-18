@@ -15,27 +15,27 @@ namespace dotnet_react.Models.HubGroups
     /// </summary>
     public abstract class HubGroup
     {
-        public List<ApplicationUser> ApplicationUsers { get; private set; }
+        public Dictionary<string, ApplicationUser> ApplicationUsers { get; private set; }
         public HubGroup()
         {
             this.HubGroupId = System.Guid.NewGuid().ToString();
-            this.ApplicationUsers = new List<ApplicationUser>();
+            this.ApplicationUsers = new Dictionary<string, ApplicationUser>();
         }
         public string HubGroupId { get; protected set; }
 
         public virtual async Task JoinGroup(SignalRHub signalRHub, ApplicationUser appUser)
         {
-            if (!this.ApplicationUsers.Contains(appUser))
+            if (!this.ApplicationUsers.ContainsKey(appUser.Id))
             {
-                this.ApplicationUsers.Add(appUser);
+                this.ApplicationUsers[appUser.Id] = appUser;
                 await signalRHub.Groups.AddToGroupAsync(signalRHub.Context.ConnectionId, this.HubGroupId);
             }
         }
         public virtual async Task UnjoinGroup(SignalRHub signalRHub, ApplicationUser appUser)
         {
-            if (this.ApplicationUsers.Contains(appUser))
+            if (this.ApplicationUsers.ContainsKey(appUser.Id))
             {
-                this.ApplicationUsers.Remove(appUser);
+                this.ApplicationUsers.Remove(appUser.Id);
                 await signalRHub.Groups.RemoveFromGroupAsync(signalRHub.Context.ConnectionId, this.HubGroupId);
             }
         }

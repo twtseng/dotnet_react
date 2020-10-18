@@ -29,6 +29,7 @@ namespace dotnet_react.Models.HubGroups
         public Dictionary<string, List<string>> PlayerWins { get; set; }
         public override async Task JoinGroup(SignalRHub signalRHub, ApplicationUser appUser)
         {
+            signalRHub.Logger.LogInformation($"MathRace.JoinGroup {this.HubGroupId}, {appUser.UserName}");
             await base.JoinGroup(signalRHub, appUser);
             if (!PlayerWins.ContainsKey(appUser.UserName))
             {
@@ -38,6 +39,7 @@ namespace dotnet_react.Models.HubGroups
         }
         public  override async Task UnjoinGroup(SignalRHub signalRHub, ApplicationUser appUser)
         {
+            signalRHub.Logger.LogInformation($"MathRace.UnjoinGroup {this.HubGroupId}, {appUser.UserName}");
             await base.UnjoinGroup(signalRHub, appUser);
             if (PlayerWins.ContainsKey(appUser.UserName))
             {

@@ -21,7 +21,14 @@ namespace dotnet_react.Models.HubGroups
         }
         public string GetHubGroupsJson()
         {
-            return JsonConvert.SerializeObject(this.HubGroups.Select(x => new { x.HubGroupId, ClassName=x.GetType().Name, CanJoin = x.CanJoin(), NumUsers=x.ApplicationUsers.Count }));
+            return JsonConvert.SerializeObject(
+                this.HubGroups.Select(x => new { 
+                    x.HubGroupId, 
+                    ClassName=x.GetType().Name, 
+                    CanJoin = x.CanJoin(), 
+                    NumUsers=x.ApplicationUsers.Keys.Count,
+                    Players = x.ApplicationUsers.Values.Select(x => x.UserName).ToList()
+                    }));
         }
         public async Task CallAction(SignalRHub signalRHub, ApplicationUser appUser, string hubGroupId, HubPayload hubPayload)
         {

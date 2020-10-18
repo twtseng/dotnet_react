@@ -5,7 +5,7 @@ import Home from './components/Home';
 import AuthorizeRoute from './components/api-authorization/AuthorizeRoute';
 import ApiAuthorizationRoutes from './components/api-authorization/ApiAuthorizationRoutes';
 import { ApplicationPaths } from './components/api-authorization/ApiAuthorizationConstants';
-import MathGame from './components/math_game/game';
+import MathGame from './components/math_game/mathgame';
 import EatLeaves from './components/eat_leaves/game';
 import DeathStar from './components/death_star/game';
 import PoliteGame from './components/polite_game/game';
