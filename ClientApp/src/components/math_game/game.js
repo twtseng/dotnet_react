@@ -11,13 +11,6 @@ const Game = () => {
     const [answerStatusColor, setAnswerStatusColor] = React.useState("text-success");
     const { signalRHub } = React.useContext(AppContext);
 
-    const sendSignalR = async (method, p1=null) => {
-        console.log(`sendSignalR hubGroupId:${hubGroupId} method:${method} p1:${p1}`)
-        signalRHub.callAction(hubGroupId, JSON.stringify({ Method: method, Param1: p1 }))
-        .then(() => console.log(`${method} succeeded`))
-       // .catch(err => { console.log(`${method} failed, ${err}. Attempting reconnect`);  signalRHub.restartHub();})    
-    } 
-
     React.useEffect(() => {
     authService.getAccessToken()
     .then((token) => {
@@ -32,7 +25,8 @@ const Game = () => {
             setAnswerStatus(`${answer} is correct`);
             setAnswerStatusColor("text-success");
         });
-        signalRHub.startHub(token);
+        signalRHub.startHub(token)
+        .then(signalRHub.callAction("", JSON.stringify({ Method: "JoinGroup", Param1: hubGroupId })));
     });
     },[]);  
 
@@ -46,38 +40,26 @@ const Game = () => {
             Status: "Click join game to join"
         }
         );
-    const clickJoin = () => {
-        setAnswerStatus("");
-        setMyAnswer("");
-        signalRHub.callAction("", JSON.stringify({ Method: "JoinGroup", Param1: hubGroupId }))
-        sendSignalR("AddPlayer");
-    }
-    const clickUnjoin = () => {
-        setAnswerStatus("");
-        setMyAnswer("");
-        sendSignalR("RemovePlayer");
-    } 
     const clickReset = () => {
         setAnswerStatus("");
         setMyAnswer("");
-        sendSignalR("ResetGame");
+        signalRHub.callAction(hubGroupId, JSON.stringify({ Method: "ResetGame", Param1: hubGroupId }))
     }     
     const clickSubmit = () => {
         setMyAnswer("");
-        sendSignalR("CheckAnswer", myAnswer);
+        signalRHub.callAction(hubGroupId, JSON.stringify({ Method: "CheckAnswer", Param1: myAnswer }))
     }
-
+    React.useEffect(() => {
+        return () => {
+            console.log('******************* Math Game UNMOUNTED, unjoining group');
+            signalRHub.callAction("", JSON.stringify({ Method: "UnjoinGroup", Param1: hubGroupId }))
+        };
+    }, []);
     return (
         <Jumbotron>
                 <div className='mb-4'>
                     HubGroupId: {hubGroupId}
                 </div>                
-                <div className='mb-4'>
-                    <Button onClick={clickJoin}>Join Game</Button>
-                </div>
-                <div className='mb-4'>
-                    <Button onClick={clickUnjoin}>Unjoin Game</Button>
-                </div>
                 <div className='mb-4'>
                     <Button onClick={clickReset}>Reset Game</Button>
                 </div>

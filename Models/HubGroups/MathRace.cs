@@ -27,23 +27,28 @@ namespace dotnet_react.Models.HubGroups
         Example: "Joe" : ["1+1=2","2+2=4"]
         */ 
         public Dictionary<string, List<string>> PlayerWins { get; set; }
-        public void AddPlayer(ApplicationUser user)
+        public override async Task JoinGroup(SignalRHub signalRHub, ApplicationUser appUser)
         {
-            if (!PlayerWins.ContainsKey(user.UserName))
+            await base.JoinGroup(signalRHub, appUser);
+            if (!PlayerWins.ContainsKey(appUser.UserName))
             {
-                PlayerWins[user.UserName] = new List<string>();
+                PlayerWins[appUser.UserName] = new List<string>();
             }
+            await signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
         }
-        public void RemovePlayer(ApplicationUser user)
+        public  override async Task UnjoinGroup(SignalRHub signalRHub, ApplicationUser appUser)
         {
-            if (PlayerWins.ContainsKey(user.UserName))
+            await base.UnjoinGroup(signalRHub, appUser);
+            if (PlayerWins.ContainsKey(appUser.UserName))
             {
-                PlayerWins.Remove(user.UserName);
+                PlayerWins.Remove(appUser.UserName);
             }
+            await signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
         }
         public int Num1 { get; private set; }
         public int Num2 { get; private set; }
         public string Status { get; set;}
+        public bool GameOver { get; set; }
 
         public void GenerateNewProblem()
         {
@@ -57,7 +62,15 @@ namespace dotnet_react.Models.HubGroups
             {
                 this.Status = $"{user.Email} got the last question right! ({this.Num1} + {this.Num2} = {answer})";
                 PlayerWins[user.UserName].Add($"{Num1} + {Num2} = {answer}");
-                GenerateNewProblem();
+                if (PlayerWins[user.UserName].Count >= 10)
+                {
+                    this.GameOver = true;
+                    this.Status += $" {user.Email} WINS THE GAME!";
+                }
+                else
+                {
+                    GenerateNewProblem();
+                }
                 return true;
             } else {
                 return false;
@@ -66,12 +79,18 @@ namespace dotnet_react.Models.HubGroups
         public void ResetGame()
         {
             PlayerWins.Clear();
+            this.GameOver = false;
         }
         public string GetGameJson()
         {
             return JsonConvert.SerializeObject(this);
         }
 
+        public override bool CanJoin()
+        {
+            // This game accepts unlimited participants
+            return true;
+        }
         public override async Task CallAction(SignalRHub signalRHub, ApplicationUser appUser, string hubGroupId, HubPayload hubPayload)
         {
             switch (hubPayload.Method)
@@ -80,7 +99,7 @@ namespace dotnet_react.Models.HubGroups
                     signalRHub.Logger.LogInformation($"MathRace ResetGame {appUser.UserName}");
                     this.ResetGame();
                     this.Status = $"{appUser.UserName} reset the game";
-                    this.AddPlayer(appUser);
+                    await this.JoinGroup(signalRHub, appUser);
                     await signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());
                     break;
                 case "CheckAnswer":
@@ -97,7 +116,7 @@ namespace dotnet_react.Models.HubGroups
                     break;  
                 case "AddPlayer":
                     signalRHub.Logger.LogInformation($"MathRace AddPlayer");
-                    this.AddPlayer(appUser);
+                    await this.JoinGroup(signalRHub, appUser);
                     //await this.JoinGroup(_signalRHub);
                     signalRHub.Logger.LogInformation($"AddPlayer ({appUser.UserName})");
 
@@ -105,7 +124,7 @@ namespace dotnet_react.Models.HubGroups
                     break;
                 case "RemovePlayer":
                     signalRHub.Logger.LogInformation($"MathRace RemovePlayer");
-                    this.RemovePlayer(appUser);
+                    await this.UnjoinGroup(signalRHub, appUser);
                     signalRHub.Logger.LogInformation($"RemovePlayer ({appUser.UserName})");
 
                     await signalRHub.Clients.Group(this.HubGroupId).SendAsync("GameJson", this.GetGameJson());

@@ -29,25 +29,20 @@ export class SignalRHub {
       return this.restartHub();
     }
     callAction(groupId, payload) {
-      console.log(`SignalRHub callAction groupId=${groupId} payload=${payload}`);
-      return this.hub.invoke('CallAction', this.authToken, groupId, payload);
+      console.log(`SignalRHub callAction groupId=${groupId} payload=${payload}, connection state=${this.hub.state}`);
+      if (this.hub.state === signalR.HubConnectionState.Connected) {
+        this.hub.invoke('CallAction', this.authToken, groupId, payload)
+        .then(() => console.log(`groupId[${groupId}] payload=${payload} succeeded`))
+        .catch(err => { console.log(`groupId[${groupId}] payload=${payload} failed, ${err}. Attempting reconnect`);  this.restartHub() });
+      }
+      else if (this.hub.state === signalR.HubConnectionState.Connecting) {
+        console.log(" === Currently connecting, retry callAction in 1 second ===")
+        setTimeout(() => this.callAction(groupId, payload), 1000);
+      } else {
+        console.log(` === Current connection state: ${this.hub.state}, restarting hub and retry callAction in 1 second ===`);
+        this.restartHub()
+        .then(() => { setTimeout(() => this.HubConnectionBuildercallAction(groupId, payload), 1000)});        
+      } 
     }
-    // send(methodName, p1=null, p2=null, p3=null, p4=null) {
-    //   if (p1 == null) {
-    //     console.log(`SignalRHub send ${methodName}`);
-    //     return this.hub.invoke(methodName, this.authToken);
-    //   } else if (p2 == null) {
-    //     console.log(`SignalRHub send ${methodName}, p1=${p1}`);
-    //     return this.hub.invoke(methodName, this.authToken, p1);
-    //   } else if (p3 == null) {
-    //     console.log(`SignalRHub send ${methodName}, p1=${p1}, p2=${p2}`);
-    //     return this.hub.invoke(methodName, this.authToken, p1, p2);
-    //   } else if (p4 == null) {
-    //     console.log(`SignalRHub send ${methodName}, p1=${p1}, p2=${p2}, p3=${p3}`);
-    //     return this.hub.invoke(methodName, this.authToken, p1, p2, p3);
-    //   } else {
-    //     console.log(`SignalRHub send ${methodName}, p1=${p1}, p2=${p2}, p3=${p3}, p4=${p4}`);
-    //     return this.hub.invoke(methodName, this.authToken, p1, p2, p3, p4);
-    //   } 
-    // }
+    
   }

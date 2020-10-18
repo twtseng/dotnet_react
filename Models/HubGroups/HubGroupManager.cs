@@ -21,7 +21,7 @@ namespace dotnet_react.Models.HubGroups
         }
         public string GetHubGroupsJson()
         {
-            return JsonConvert.SerializeObject(this.HubGroups.Select(x => new { x.HubGroupId, ClassName=x.GetType().Name }));
+            return JsonConvert.SerializeObject(this.HubGroups.Select(x => new { x.HubGroupId, ClassName=x.GetType().Name, CanJoin = x.CanJoin(), NumUsers=x.ApplicationUsers.Count }));
         }
         public async Task CallAction(SignalRHub signalRHub, ApplicationUser appUser, string hubGroupId, HubPayload hubPayload)
         {
@@ -31,11 +31,19 @@ namespace dotnet_react.Models.HubGroups
                 switch (hubPayload.Method) {
                     case "JoinGroup":
                         signalRHub.Logger.LogInformation($"HubGroupManager.JoinGroup ({hubPayload.Param1})");
-                        await signalRHub.Groups.AddToGroupAsync(signalRHub.Context.ConnectionId, hubPayload.Param1);
+                        HubGroup groupToJoin = this.HubGroups.Where(x => x.HubGroupId == hubPayload.Param1).FirstOrDefault();
+                        if (groupToJoin != null)
+                        {
+                            await groupToJoin.JoinGroup(signalRHub, appUser);
+                        }
                         break;
                     case "UnjoinGroup":
                         signalRHub.Logger.LogInformation($"HubGroupManager.UnjoinGroup ({hubPayload.Param1})");
-                        await signalRHub.Groups.RemoveFromGroupAsync(signalRHub.Context.ConnectionId, hubPayload.Param1);
+                        HubGroup groupToUnjoin = this.HubGroups.Where(x => x.HubGroupId == hubPayload.Param1).FirstOrDefault();
+                        if (groupToUnjoin != null)
+                        {
+                            await groupToUnjoin.UnjoinGroup(signalRHub, appUser);
+                        }
                         break;
                     case "GetHubGroups":
                         signalRHub.Logger.LogInformation($"HubGroupManager.GetHubGroups ({hubPayload.Param1})");

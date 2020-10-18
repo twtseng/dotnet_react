@@ -11,37 +11,32 @@ const Home = () => {
 
   const [hubGroups, setHubGroups] = React.useState([]);
   const { signalRHub } = React.useContext(AppContext);
-  const sendSignalR = async (method, p1=null) => {
-    console.log(`sendSignalR method:${method} p1:${p1}`)
-    signalRHub.callAction("", JSON.stringify({ Method: method, Param1: p1 }))
-    .then(() => console.log(`${method} succeeded`))
-   // .catch(err => { console.log(`${method} failed, ${err}. Attempting reconnect`);  signalRHub.restartHub();})    
-} 
 
-React.useEffect(() => {
-authService.getAccessToken()
-.then((token) => {
-    signalRHub.addMethod("HubGroups", (hubGroupData) => {
-        setHubGroups(JSON.parse(hubGroupData));
-    });
-    signalRHub.startHub(token)
-    .then(() => sendSignalR("GetHubGroups"));
-});
-},[]);  
-    return (
-      <Jumbotron>
-        <h1>Group games</h1>
-        {hubGroups.map(x => 
-          <Card  className='mb-4' key={x.HubGroupId}>
-            <Card.Body>
-              <Card.Title>{x.ClassName}</Card.Title>
-              <Card.Text>{x.HubGroupId}</Card.Text>
-              <Link to={`/mathgame/${x.HubGroupId}`}>Play Destroy the Deathstar</Link>
-            </Card.Body>
-          </Card>
-          )}
-      </Jumbotron>
-    );
+  React.useEffect(() => {
+  authService.getAccessToken()
+  .then((token) => {
+      signalRHub.addMethod("HubGroups", (hubGroupData) => {
+          setHubGroups(JSON.parse(hubGroupData));
+      });
+      signalRHub.startHub(token)
+      .then(() => signalRHub.callAction("", JSON.stringify({ Method: "GetHubGroups", Param1: "" })));
+  });
+  },[]);  
+
+  return (
+    <Jumbotron>
+      <h1>Group games</h1>
+      {hubGroups.map(x => 
+        <Card  className='mb-4' key={x.HubGroupId}>
+          <Card.Body>
+            <Card.Title>{x.ClassName}</Card.Title>
+            <Card.Text>{x.HubGroupId}</Card.Text>
+            <Link to={`/mathgame/${x.HubGroupId}`}>Play Destroy the Deathstar</Link>
+          </Card.Body>
+        </Card>
+        )}
+    </Jumbotron>
+  );
 
 }
 
