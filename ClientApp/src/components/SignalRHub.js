@@ -41,7 +41,7 @@ export class SignalRHub {
       } else {
         console.log(` === Current connection state: ${this.hub.state}, restarting hub and retry callAction in 1 second ===`);
         this.restartHub()
-        .then(() => { setTimeout(() => this.HubConnectionBuildercallAction(groupId, payload), 1000)});        
+        .then(() => { setTimeout(() => this.callAction(groupId, payload), 1000)});        
       } 
     }
     

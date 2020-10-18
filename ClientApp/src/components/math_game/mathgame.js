@@ -45,16 +45,18 @@ const Game = () => {
         setMyAnswer("");
         signalRHub.callAction(hubGroupId, JSON.stringify({ Method: "ResetGame", Param1: hubGroupId }))
     }     
-    const clickSubmit = () => {
-        setMyAnswer("");
-        signalRHub.callAction(hubGroupId, JSON.stringify({ Method: "CheckAnswer", Param1: myAnswer }))
-    }
     React.useEffect(() => {
         return () => {
             console.log('******************* Math Game UNMOUNTED, unjoining group');
             signalRHub.callAction("", JSON.stringify({ Method: "UnjoinGroup", Param1: hubGroupId }))
         };
     }, []);
+    const handleKeyPress = (event) => {
+        if(event.key === 'Enter'){
+            setMyAnswer("");
+            signalRHub.callAction(hubGroupId, JSON.stringify({ Method: "CheckAnswer", Param1: myAnswer }))
+        }
+    }
     return (
         <Jumbotron>
                 <div className='mb-4'>
@@ -63,9 +65,8 @@ const Game = () => {
                 <div className='mb-4'>
                     <Button onClick={clickReset}>Reset Game</Button>
                 </div>
-                <div className='mb-4'>
-                    Status: {gameState.Status}
-                </div>
+                    
+                { gameState.GameOver ? <div className='mb-4 font-weight-bold text-success'>{gameState.Status}</div> : <div className='mb-4'>Status: {gameState.Status}</div>}
 
                 <Card  className='mb-4'>
                     <Card.Body>
@@ -73,10 +74,7 @@ const Game = () => {
                         <Card.Text>
                         {gameState.Num1} + {gameState.Num2} =
                         </Card.Text>
-                        <input type="text" value={myAnswer} onChange={e => setMyAnswer(e.target.value)} />
-                    </Card.Body>
-                    <Card.Body>
-                        <Button onClick={clickSubmit}>Submit Answer</Button>
+                        <input type="text" value={myAnswer} onChange={e => setMyAnswer(e.target.value)} onKeyPress={handleKeyPress} />
                     </Card.Body>
                     <Card.Footer>
                     <small className={answerStatusColor}>{answerStatus}</small>

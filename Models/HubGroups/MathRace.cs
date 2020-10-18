@@ -67,7 +67,7 @@ namespace dotnet_react.Models.HubGroups
                 if (PlayerWins[user.UserName].Count >= 10)
                 {
                     this.GameOver = true;
-                    this.Status += $" {user.Email} WINS THE GAME!";
+                    this.Status = $"WINNER: {user.Email}!!!";
                 }
                 else
                 {
