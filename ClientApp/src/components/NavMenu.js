@@ -40,7 +40,7 @@ export class NavMenu extends Component {
                   </DropdownToggle>
                   <DropdownMenu right>
                     <DropdownItem>
-                        <NavLink tag={Link} className="text-dark" to="/mathgame">Math Game</NavLink>
+                        <NavLink tag={Link} className="text-dark" to="/zogo">Zogo Lava Dodge</NavLink>
                     </DropdownItem>
                     <DropdownItem divider />
                     <DropdownItem>
