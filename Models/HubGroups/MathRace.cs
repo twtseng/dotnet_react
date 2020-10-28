@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
 using dotnet_react.Controllers;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Identity;
 
 namespace dotnet_react.Models.HubGroups
 {
