@@ -39,6 +39,9 @@ export class NavMenu extends Component {
                     Games
                   </DropdownToggle>
                   <DropdownMenu right>
+                  <DropdownItem>
+                        <NavLink tag={Link} className="text-dark" to="/computerjs">Computer JS</NavLink>
+                    </DropdownItem>
                     <DropdownItem>
                         <NavLink tag={Link} className="text-dark" to="/zogo">Zogo Lava Dodge</NavLink>
                     </DropdownItem>

@@ -11,6 +11,7 @@ import DeathStar from './components/death_star/game';
 import PoliteGame from './components/polite_game/game';
 import WardenChess from './components/WardenChess/WardenChess';
 import Zogo from './components/zogo/zogo';
+import ComputerJS from './components/computerjs/computerjs';
 import AppContext from './components/AppContext';
 import { SignalRHub } from './components/SignalRHub';
 
@@ -30,6 +31,7 @@ export default class App extends Component {
           <Route path='/politegame' component={PoliteGame} />
           <Route path='/wardenchess' component={WardenChess} />
           <Route path='/zogo' component={Zogo} />
+          <Route path='/computerjs' component={ComputerJS} />
           <Route path={ApplicationPaths.ApiAuthorizationPrefix} component={ApiAuthorizationRoutes} />
         </Layout>
       </AppContext.Provider>
