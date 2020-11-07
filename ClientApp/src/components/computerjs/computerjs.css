@@ -11,3 +11,23 @@
     background-size: auto 100%;
     background-repeat: no-repeat;
 }
+.robotbutton {
+    position: absolute;
+    left: 5%;
+    top: 60%;
+    height: 100px;
+    width: 100px;
+    background-image: url("../../static/computerjs_robotmazes.png");
+    background-size: auto 100%;
+    background-repeat: no-repeat;
+}
+.mathbutton {
+    position: absolute;
+    left: 20%;
+    top: 60%;
+    height: 100px;
+    width: 100px;
+    background-image: url("../../static/computerjs_math.png");
+    background-size: auto 100%;
+    background-repeat: no-repeat;
+}
