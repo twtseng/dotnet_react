@@ -21,7 +21,7 @@ export class SignalRHub {
         console.log(`SignalRHub registering method "${methodName}: ${this.methodDict[methodName]}`);
         this.hub.on(methodName, this.methodDict[methodName]);
       }
-  
+  console.log(`Restart hub methodDict: ${JSON.stringify(this.methodDict)}`);
       return this.hub.start();
     }
     startHub(authToken) {

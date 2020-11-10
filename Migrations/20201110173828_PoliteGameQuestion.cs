@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace dotnet_react.Data.Migrations
+namespace dotnet_react.Migrations
 {
-    public partial class CreateIdentitySchema : Migration
+    public partial class PoliteGameQuestion : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -78,6 +78,20 @@ namespace dotnet_react.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PersistedGrants", x => x.Key);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PoliteGameQuestions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Question = table.Column<string>(nullable: true),
+                    IsPolite = table.Column<bool>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PoliteGameQuestions", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -269,6 +283,9 @@ namespace dotnet_react.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "PersistedGrants");
+
+            migrationBuilder.DropTable(
+                name: "PoliteGameQuestions");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

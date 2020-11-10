@@ -8,7 +8,7 @@ import { ApplicationPaths } from './components/api-authorization/ApiAuthorizatio
 import MathGame from './components/math_game/mathgame';
 import EatLeaves from './components/eat_leaves/game';
 import DeathStar from './components/death_star/game';
-import PoliteGame from './components/polite_game/game';
+import PoliteGame from './components/polite_game/polite_game';
 import WardenChess from './components/WardenChess/WardenChess';
 import Zogo from './components/zogo/zogo';
 import ComputerJS from './components/computerjs/computerjs';

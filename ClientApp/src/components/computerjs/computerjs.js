@@ -69,19 +69,38 @@ const Math = (props) => {
     )
 }
 const WhatKindOfPlant = (props) => {
+    const [answer1, setAnswer1] = React.useState("");
+    const [answer2, setAnswer2] = React.useState("");
+    const [answer3, setAnswer3] = React.useState("");
+    const [result, setResult] = React.useState("");
+
+    const checkAnswer = () => {
+        if (answer1 === "weet" && answer2 === "pig" && answer3 === "beet") {
+            setResult("CORRECT");
+        } else {
+            setResult("WRONG");
+        }
+    }
+
     return (
         <Jumbotron className="gameJumbotron">
+            <div className={`display-1 text-center ${result === "CORRECT" ? "text-success" : "text-danger"}`}>
+                {result}
+            </div>
             <div className="display-1 text-center">
                 <div>WhAT KiND oF</div>
                 <div>PLANT</div>
                 <div>GreAT</div>
             </div>
             <div className="h1 text-left">
-                <div>The MAN has <input type="text"></input> SeeD'S</div>
-                <div>The MAN has <input type="text"></input> FooD</div>
-                <div>The MAN has <input type="text"></input> seeDS</div>
+                <div>The MAN has <input type="text" value={answer1} onChange={e => setAnswer1(e.target.value)}></input> SeeD'S</div>
+                <div>The MAN has <input type="text" value={answer2} onChange={e => setAnswer2(e.target.value)}></input> FooD</div>
+                <div>The MAN has <input type="text" value={answer3} onChange={e => setAnswer3(e.target.value)}></input> seeDS</div>
             </div>
+            <div className="d-flex justify-content-around">
+            <Button onClick={checkAnswer}>Check Answer</Button>
             <Button onClick={() => props.setScreen("RestartOrLogout")}>{"==>"}</Button>
+            </div>
         </Jumbotron>    
     )
 }

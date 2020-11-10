@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.SignalR;
-using Newtonsoft.Json;
 using dotnet_react.Controllers;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;

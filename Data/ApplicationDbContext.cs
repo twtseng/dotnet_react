@@ -17,5 +17,6 @@ namespace dotnet_react.Data
             IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
         {
         }
+        public DbSet<PoliteGameQuestion> PoliteGameQuestions { get; set; }
     }
 }
