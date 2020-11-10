@@ -24,6 +24,7 @@ namespace dotnet_react.Controllers
         [HttpGet("GetPoliteGameQuestions")]
         public async Task<IEnumerable<PoliteGameQuestion>> GetPoliteGameQuestions()
         {
+            _logger.LogInformation("GameController.GetPoliteGameQuestions");
             return await _dbContext.PoliteGameQuestions.ToListAsync();
         }        
     }

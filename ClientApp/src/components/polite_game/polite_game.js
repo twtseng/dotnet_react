@@ -13,7 +13,9 @@ const StartScreen = (props) => {
 }
 const PoliteQuestionQuiz = (props) => {
     const [score, setScore] = React.useState(0);
-    const [questions, setQuestions] = React.useState([]);
+    const [questions, setQuestions] = React.useState([{question:"foo question", isPolite: true}]);
+    const [questionIndex, setQuestionIndex] = React.useState(0);
+    const [status, setStatus] = React.useState("");
     const getQuestions = async () => {
         const questionsData = await callRestApi("Game/GetPoliteGameQuestions","GET");
         setQuestions(questionsData);
@@ -21,12 +23,64 @@ const PoliteQuestionQuiz = (props) => {
     React.useEffect(() => {
         getQuestions();
     },[]);
-    
+    const checkAnswer = (answer) => {
+        if (answer === questions[questionIndex].isPolite) {
+            setStatus("Correct");
+            setScore(score+1);
+        } else {
+            setStatus("Incorrect");
+        }
+        if (questionIndex >= questions.length) {
+            setStatus("Game Over");
+        }
+    }
+    const getNextQuestion = () => {
+        if (questionIndex < questions.length) {
+            setStatus("");
+            setQuestionIndex(questionIndex+1);
+        } else {
+            setStatus("Game Over");
+        }
+    }
     return (
         <Jumbotron className="gameJumbotron text-center">
-            {questions.map(x => 
-                <div id={x.id}>{JSON.stringify(x)}</div>
-            )}
+            <Card className="text-center">
+                <Card.Header className="h3 text-success">
+                    Score: {score}
+                </Card.Header>
+                <Card.Header className="h3">
+                {status === "" ? <></>
+                    : (
+                        status === "Correct"
+                        ? <div className="text-success">{status}!! {questions[questionIndex].isPolite ? "It is polite." : "It is not polite."}</div>
+                        : <div className="text-danger">{status}!! {questions[questionIndex].isPolite ? "It is polite." : "It is not polite."}</div>
+                        
+                    )
+                }
+                </Card.Header>
+            <Card.Body>
+                <Card.Text className="h1">
+                    {
+                        questionIndex < questions.length
+                        ? questions[questionIndex].question
+                        : "Game Over"
+                    }
+                </Card.Text>
+                
+            </Card.Body>
+            <Card.Footer className="text-muted">
+                {
+                    status === "" &&  questionIndex < questions.length
+                    ? <div className="d-flex justify-content-between">
+                        <Button variant="primary" onClick={() => checkAnswer(true)}>Is Polite</Button>
+                        <Button variant="primary" onClick={() => checkAnswer(false)}>Is NOT Polite</Button>
+                      </div>
+                    : <Button variant="primary" onClick={getNextQuestion}>Next</Button>
+                }
+                
+                
+            </Card.Footer>
+            </Card>
         </Jumbotron>   
     )
 }
